@@ -4,19 +4,27 @@
 \usepackage{ifthen}
 \usepackage{tikz}
 \usepackage{xcolor}
-\usepackage{fp}
+\usepackage{calc}
 
-\def\cardWidth{64mm}
-\def\cardHeight{89mm}
+\newcommand{\deflen}[2]{%      
+  \expandafter\newlength\csname #1\endcsname
+  \expandafter\setlength\csname #1\endcsname{#2}%
+}
 
-\def\shapeWidth{38.4mm}
-\def\shapeHeight{17.8mm}
-\def\shapeSpacing{4.45mm}
+\deflen{cardW}{64mm}
+\deflen{cardH}{91mm}
 
-\def\horizontalSpace{4.5mm}
-\def\verticalSpace{7.5mm}
+\deflen{shapeW}{38.4mm}
+\deflen{shapeH}{17.8mm}
+\deflen{shapeSpacing}{7.0mm}
 
-\def\borderThickness{2mm}
+\deflen{hSpace}{0mm}
+\deflen{vSpace}{0mm}
+
+\deflen{vMargin}{(\paperheight - \cardH * 3 - \vSpace * 2) * \real{0.5}}
+\deflen{hMargin}{(\paperwidth - \cardW * 3 - \hSpace * 2) * \real{0.5}}
+
+\deflen{borderThickness}{1mm}
 
 \newcounter{col}
 \newcounter{shade}
@@ -29,35 +37,54 @@
 \definecolor{bleu}{rgb}{0 0 0.8}
 
 \newcommand{\setColors}{
-    \ifthenelse{\thecol=0}{\colorlet{currColor}{rouge}}{%
-    \ifthenelse{\thecol=1}{\colorlet{currColor}{vert}}{%
-                           \colorlet{currColor}{bleu}}}
+  \ifthenelse{\thecol=0}{%
+    \colorlet{currColor}{rouge}
+  }{%
+    \ifthenelse{\thecol=1}{%
+      \colorlet{currColor}{vert}
+    }{%
+      \colorlet{currColor}{bleu}
+    }
+  }
 
-    \ifthenelse{\theshade=0}{\colorlet{currFill}{white}}{%
-    \ifthenelse{\theshade=1}{\colorlet{currFill}{currColor!20!white}}{%
-                             \colorlet{currFill}{currColor}}}
+  \ifthenelse{\theshade=0}{%
+    \colorlet{currFill}{white}
+  }{%
+    \ifthenelse{\theshade=1}{%
+      \colorlet{currFill}{currColor!20!white}
+    }{%
+      \colorlet{currFill}{currColor}
+    }
+  }
 }
 
 \newcommand{\drawShape}{%
-    \ifthenelse{\theshape=0}{%
-        \filldraw[draw=currColor, fill=currFill, line width=\borderThickness] (0, 0) rectangle (\shapeWidth, -\shapeHeight);
-    }{%
+  \ifthenelse{\theshape=0}{%
+    \filldraw[draw=currColor, fill=currFill, line width=\borderThickness]
+      (0, 0) rectangle (\shapeW, -\shapeH);
+  }{%
     \ifthenelse{\theshape=1}{%
-        \filldraw[draw=currColor, fill=currFill, line width=\borderThickness] (\shapeWidth/2, 0) -- (0, -\shapeHeight) -- (\shapeWidth, -\shapeHeight) -- cycle;
+      \filldraw[draw=currColor, fill=currFill, line width=\borderThickness]
+        (\shapeW/2, 0) -- (0, -\shapeH) -- (\shapeW, -\shapeH) -- cycle;
     }{%
-        \filldraw[draw=currColor, fill=currFill, line width=\borderThickness] (\shapeWidth/2, -\shapeHeight/2) circle [x radius=\shapeWidth/2, y radius=\shapeHeight/2];
-    }}
+      \filldraw[draw=currColor, fill=currFill, line width=\borderThickness]
+        (\shapeW/2, -\shapeH/2) circle [x radius=\shapeW/2, y radius=\shapeH/2];
+    }
+  }
 }
 
 \newcommand{\drawCard}{%
-    \draw[color=black, rounded corners=3mm] (0, 0) rectangle (\cardWidth, -\cardHeight);
-    \begin{scope}[shift={(\cardWidth/2 - \shapeWidth/2, -\cardHeight/2 - \shapeSpacing/2 + \thenum * \shapeHeight/2 + \thenum * \shapeSpacing/2))}]
-        \forloop{shapei}{0}{\theshapei < \thenum}{%
-            \begin{scope}[shift={(0, -\theshapei * \shapeHeight - \theshapei * \shapeSpacing)}]
-                \drawShape
-            \end{scope}
-        }
-    \end{scope}
+  \draw[color=black, rounded corners=3mm] (0, 0) rectangle (\cardW, -\cardH);
+  \begin{scope}[shift = {(
+      \cardW/2 -\shapeW/2,
+      -\cardH/2 -\shapeSpacing/2 +\thenum*\shapeH/2 +\thenum*\shapeSpacing/2
+  )}]
+    \forloop{shapei}{0}{\theshapei < \thenum}{%
+      \begin{scope}[shift={(0, -\theshapei*\shapeH -\theshapei*\shapeSpacing)}]
+        \drawShape
+      \end{scope}
+    }
+  \end{scope}
 }
 
 \pagenumbering{gobble}
@@ -65,21 +92,21 @@
 \begin{document}
 
 \forloop{shape}{0}{\theshape < 3}{%
-    \forloop{num}{1}{\thenum < 4}{%
-        \begin{tikzpicture}[remember picture, overlay, shift=(current page.north west)]
-            \forloop{col}{0}{\thecol < 3}{%
-                \begin{scope}[shift={(0, -\thecol * \cardHeight - \thecol * \verticalSpace - \verticalSpace)}]
-                    \forloop{shade}{0}{\theshade < 3}{%
-                        \setColors
-                        \begin{scope}[shift={(\theshade * \cardWidth + \theshade * \horizontalSpace + \horizontalSpace, 0)}]
-                            \drawCard
-                        \end{scope}
-                    }
-                \end{scope}
-            }
-        \end{tikzpicture}
-        \newpage
-    }
+  \forloop{num}{1}{\thenum < 4}{%
+    \begin{tikzpicture}[remember picture, overlay, shift=(current page.north west)]
+      \forloop{col}{0}{\thecol < 3}{%
+        \begin{scope}[shift={(0, -\thecol*\cardH -\thecol*\vSpace -\vMargin)}]
+          \forloop{shade}{0}{\theshade < 3}{%
+            \setColors
+            \begin{scope}[shift={(\theshade*\cardW +\theshade*\hSpace +\hMargin,0)}]
+              \drawCard
+            \end{scope}
+          }
+        \end{scope}
+      }
+    \end{tikzpicture}
+    \newpage
+  }
 }
 
 \end{document}
