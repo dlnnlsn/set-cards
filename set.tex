@@ -6,6 +6,8 @@
 \usepackage{xcolor}
 \usepackage{calc}
 
+%\def\darkmode{} %uncomment to enable darkmode
+
 \newcommand{\deflen}[2]{%      
   \expandafter\newlength\csname #1\endcsname
   \expandafter\setlength\csname #1\endcsname{#2}%
@@ -32,9 +34,17 @@
 \newcounter{num}
 \newcounter{shapei}
 
-\definecolor{rouge}{rgb}{1 0 0}
-\definecolor{vert}{rgb}{0 0.5 0}
-\definecolor{bleu}{rgb}{0 0 0.8}
+\ifcsname darkmode\endcsname
+  \definecolor{background}{rgb}{0.1647 0.1686 0.1804}
+  \definecolor{rouge}{rgb}{1 0.4863 0.4863}
+  \definecolor{vert}{rgb}{1 0.8784 0.5176}
+  \definecolor{bleu}{rgb}{0.5529 0.9176 1}
+\else
+  \definecolor{background}{rgb}{1 1 1}
+  \definecolor{rouge}{rgb}{1 0 0}
+  \definecolor{vert}{rgb}{0 0.5 0}
+  \definecolor{bleu}{rgb}{0 0 0.8}
+\fi
 
 \newcommand{\setColors}{
   \ifthenelse{\thecol=0}{%
@@ -48,10 +58,10 @@
   }
 
   \ifthenelse{\theshade=0}{%
-    \colorlet{currFill}{white}
+    \colorlet{currFill}{background}
   }{%
     \ifthenelse{\theshade=1}{%
-      \colorlet{currFill}{currColor!20!white}
+      \colorlet{currFill}{currColor!20!background}
     }{%
       \colorlet{currFill}{currColor}
     }
@@ -74,7 +84,7 @@
 }
 
 \newcommand{\drawCard}{%
-  \draw[color=black, rounded corners=3mm] (0, 0) rectangle (\cardW, -\cardH);
+  \filldraw[draw=black, fill=background, rounded corners=3mm] (0, 0) rectangle (\cardW, -\cardH);
   \begin{scope}[shift = {(
       \cardW/2 -\shapeW/2,
       -\cardH/2 -\shapeSpacing/2 +\thenum*\shapeH/2 +\thenum*\shapeSpacing/2
